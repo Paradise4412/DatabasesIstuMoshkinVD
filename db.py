@@ -25,8 +25,6 @@ class Database:
         self.conn.close()
 
     def execute_script(self, sql: str) -> None:
-        # psycopg executes one statement at a time; we keep schema.sql as a file and
-        # rely on `psql -f` for initial setup. Still, allow scripts for small admin tasks.
         with self.conn.cursor() as cur:
             for stmt in _split_sql_statements(sql):
                 if stmt.strip():
@@ -145,7 +143,6 @@ class Database:
 
 
 def _split_sql_statements(sql: str) -> list[str]:
-    # Minimal splitter: good enough for simple scripts (not for complex PL/pgSQL).
     statements: list[str] = []
     buf: list[str] = []
     in_single = False
