@@ -54,3 +54,44 @@
 - `next` / `prev` — следующая / предыдущая страница
 - `a` — добавить, `e` — редактировать, `d` — удалить
 - `s` — поиск (ILIKE), `f` — фильтр, `o` — сортировка, `r` — обновить выборку, `q` — назад в меню
+
+## Инструкция по запуску
+
+1. **PostgreSQL** должен быть установлен и запущен (доступны команды `psql`, `createdb`).
+
+2. **Создайте базу и примените схему** (из каталога проекта):
+
+   ```bash
+   cd ~/Documents/istu/DatabasesISTU
+   createdb airdb
+   psql -d airdb -f schema.sql
+   ```
+
+3. **Загрузите тестовые данные:**
+
+   ```bash
+   psql -d airdb -f seed.sql
+   ```
+
+4. **Установите зависимости Python**
+
+   ```bash
+   cd ~/Documents/istu/DatabasesISTU
+   python3 -m venv .venv
+   source .venv/bin/activate
+   python -m pip install -r requirements.txt
+   ```
+
+5. **Укажите подключение к базе**
+
+   ```bash
+   export DATABASE_URL="postgresql://$USER@localhost:5432/airdb"
+   ```
+
+6. **Запустите приложение:**
+
+   ```bash
+   python app.py
+   ```
+
+   В меню выберите нужный раздел (таблицы, форма 1:M или отчёты). Для выхода используйте пункт `0`.
