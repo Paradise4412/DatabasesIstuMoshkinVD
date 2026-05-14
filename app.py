@@ -52,7 +52,6 @@ def _read_cmd(prompt: str = "> ") -> Optional[str]:
 
 
 def _parse_timestamptz(v: str) -> datetime:
-    # Accept: "YYYY-MM-DD HH:MM" or ISO.
     v = v.strip()
     for fmt in ("%Y-%m-%d %H:%M", "%Y-%m-%dT%H:%M", "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S"):
         try:

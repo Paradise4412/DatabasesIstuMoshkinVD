@@ -1,11 +1,5 @@
--- Тестовые данные для демонстрации таблиц и отчётов в приложении.
--- Применение: psql -d airdb -f seed.sql
---
--- Очищает данные в дочерних таблицах и заполняет заново (идемпотентный набор).
-
 BEGIN;
 
--- Одна команда: учитывает FK между transit_routes и routes; CASCADE снимает зависимости.
 TRUNCATE TABLE
   transit_routes,
   routes,
@@ -17,7 +11,6 @@ TRUNCATE TABLE
   services
 RESTART IDENTITY CASCADE;
 
--- Аэропорты (ИНН: 10 или 12 цифр по CHECK в схеме)
 INSERT INTO airports (airport_code, name, inn, address, city, country, phone) VALUES
   ('SVO', 'Шереметьево', '7707083893', 'Московская обл.', 'Химки', 'Россия', '+7 495 578-65-65'),
   ('DME', 'Домодедово', '5001007327', 'д. Домодедово', 'Домодедово', 'Россия', '+7 495 933-66-66'),
@@ -52,7 +45,6 @@ INSERT INTO personnel (airport_code, person_inn, full_name, position_code, crew_
   ('LED', '780123456789', 'Смирнова Елена Викторовна', 'DISP', NULL, 'SEC', '2021-05-01'),
   ('LED', '780123456788', 'Волков Павел Николаевич', 'PILOT', 'CRW02', 'GND', '2022-02-14');
 
--- Маршруты: часть с вылетом в ближайшие часы (для отчёта «ближайшие рейсы»)
 INSERT INTO routes (
   start_airport_code, end_airport_code, flight_hours,
   airplane_airport_code, airplane_code, departure_time, flight_no, notes
@@ -65,7 +57,6 @@ INSERT INTO routes (
   ('LED', 'KGD', 1.20, 'LED', 'DP190', now() + interval '3 days', 'DP901', 'Редкий рейс'),
   ('DME', 'KGD', 2.00, 'DME', 'U6232', now() + interval '4 days', 'U6200', 'Прямой');
 
--- Транзит: маршрут SVO -> KGD через LED (route_code = 3 после RESTART IDENTITY если только seed)
 WITH r AS (
   SELECT route_code, departure_time
   FROM routes

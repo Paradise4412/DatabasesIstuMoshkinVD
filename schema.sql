@@ -1,7 +1,3 @@
--- PostgreSQL schema for "Airline / Airports" task.
--- Apply:
---   psql -d <db> -f schema.sql
-
 BEGIN;
 
 CREATE TABLE IF NOT EXISTS airports (
@@ -126,17 +122,12 @@ CREATE INDEX IF NOT EXISTS idx_routes_departure ON routes(departure_time);
 CREATE INDEX IF NOT EXISTS idx_routes_start_end ON routes(start_airport_code, end_airport_code);
 CREATE INDEX IF NOT EXISTS idx_transit_route ON transit_routes(route_code);
 
--- ---------------------------------------------------------------------------
--- Upgrade existing installations (CREATE TABLE IF NOT EXISTS skips new cols)
--- ---------------------------------------------------------------------------
 ALTER TABLE airports ADD COLUMN IF NOT EXISTS departures_count INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE airports ADD COLUMN IF NOT EXISTS arrivals_count INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE airplanes ADD COLUMN IF NOT EXISTS routes_assigned_count INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE routes ADD COLUMN IF NOT EXISTS transit_stop_count INTEGER NOT NULL DEFAULT 0;
 
--- ---------------------------------------------------------------------------
--- Denormalized counters + triggers (связанные таблицы / денормализация)
--- ---------------------------------------------------------------------------
+
 CREATE OR REPLACE FUNCTION refresh_airport_route_totals(p_airport_code VARCHAR)
 RETURNS void
 LANGUAGE plpgsql
@@ -258,7 +249,6 @@ CREATE TRIGGER tr_routes_denorm
   FOR EACH ROW
   EXECUTE FUNCTION trg_routes_refresh_airports_and_plane();
 
--- Синхронизация счётчиков с текущими данными (идемпотентно)
 UPDATE routes r
 SET transit_stop_count = (
   SELECT COUNT(*)::integer FROM transit_routes t WHERE t.route_code = r.route_code
@@ -277,14 +267,10 @@ SET routes_assigned_count = (
     AND r.airplane_code = p.airplane_code
 );
 
--- ---------------------------------------------------------------------------
--- Проекции (VIEW)
--- ---------------------------------------------------------------------------
 DROP VIEW IF EXISTS v_route_schedule CASCADE;
 DROP VIEW IF EXISTS v_airports_departures_agg CASCADE;
 DROP VIEW IF EXISTS v_airports_catalog CASCADE;
 
--- 1) Одна таблица
 CREATE VIEW v_airports_catalog AS
 SELECT
   airport_code,
@@ -299,7 +285,6 @@ SELECT
   arrivals_count
 FROM airports;
 
--- 2) Несколько таблиц
 CREATE VIEW v_route_schedule AS
 SELECT
   r.route_code,
@@ -321,7 +306,6 @@ JOIN airplanes pl
   ON pl.airport_code = r.airplane_airport_code
  AND pl.airplane_code = r.airplane_code;
 
--- 3) GROUP BY + HAVING (агрегация по аэропортам вылета)
 CREATE VIEW v_airports_departures_agg AS
 SELECT
   a.airport_code,
